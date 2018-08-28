@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Places App</string>
     <string name="title_activity_maps">Map</string>
+    <string name="str_image_icon">Icon</string>
+    <string name="str_image_favorite">favorite</string>
 </resources>

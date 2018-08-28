@@ -1,4 +1,4 @@
-package com.nakharin.placesapp.view.fragment.favorites
+package com.nakharin.placesapp.view.fragment.favorite
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -8,15 +8,12 @@ import android.view.ViewGroup
 
 import com.nakharin.placesapp.R
 
-/**
- * Created by nuuneoi on 11/16/2014.
- */
-class FavoritesFragment : Fragment() {
+class FavoriteFragment : Fragment() {
 
     companion object {
 
-        fun newInstance(): FavoritesFragment {
-            val fragment = FavoritesFragment()
+        fun newInstance(): FavoriteFragment {
+            val fragment = FavoriteFragment()
             val args = Bundle()
             fragment.arguments = args
             return fragment
@@ -33,7 +30,7 @@ class FavoritesFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val rootView = inflater.inflate(R.layout.fragment_nearby, container, false)
+        val rootView = inflater.inflate(R.layout.fragment_favorite, container, false)
         initInstances(rootView, savedInstanceState)
         return rootView
     }
