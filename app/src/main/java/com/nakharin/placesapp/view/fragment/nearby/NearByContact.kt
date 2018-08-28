@@ -1,6 +1,7 @@
 package com.nakharin.placesapp.view.fragment.nearby
 
 import android.location.Location
+import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import io.reactivex.disposables.Disposable
 
 class NearByContact {
@@ -8,7 +9,7 @@ class NearByContact {
     interface View {
         fun onShowLoading()
         fun onHideLoading()
-        fun onResponseSuccess(name: String?, vicinity: String?)
+        fun onResponseSuccess(nearByItemList: ArrayList<NearByItem>)
         fun onResponseError(localizedMessage: String)
     }
 

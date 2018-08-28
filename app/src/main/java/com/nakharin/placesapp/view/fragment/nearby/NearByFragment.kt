@@ -6,6 +6,7 @@ import android.app.ProgressDialog
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
+import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,10 @@ import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import com.nakharin.placesapp.R
+import com.nakharin.placesapp.extension.RecyclerItemClickListener
+import com.nakharin.placesapp.extension.addOnItemClickListener
+import com.nakharin.placesapp.view.fragment.nearby.adapter.NearByAdapter
+import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import com.pawegio.kandroid.longToast
 import com.pawegio.kandroid.toast
 import io.reactivex.disposables.CompositeDisposable
@@ -38,11 +43,14 @@ class NearByFragment : Fragment(), NearByContact.View {
     private lateinit var rootView: View
 
     private lateinit var presenter: NearByContact.UserActionListener
+
     private val compositeDisposable = CompositeDisposable()
 
     private lateinit var progressDialog: ProgressDialog
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private lateinit var nearByAdapter: NearByAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +76,7 @@ class NearByFragment : Fragment(), NearByContact.View {
         checkPermissionLocation()
 
         rootView.imgMap.setOnClickListener(onClickListener)
+        rootView.recyclerNearBy.addOnItemClickListener(onItemClickListener)
     }
 
     @SuppressLint("MissingPermission")
@@ -128,6 +137,12 @@ class NearByFragment : Fragment(), NearByContact.View {
         // Note: State of variable initialized here could not be saved
         //       in onSavedInstanceState
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(rootView.context)
+
+        val linearLayoutManager = LinearLayoutManager(context)
+        rootView.recyclerNearBy.layoutManager = linearLayoutManager
+
+        nearByAdapter = NearByAdapter(arrayListOf())
+        rootView.recyclerNearBy.adapter = nearByAdapter
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -139,10 +154,6 @@ class NearByFragment : Fragment(), NearByContact.View {
         // Restore Instance (Fragment level's variables) State here
     }
 
-    private val onClickListener = View.OnClickListener {
-        toast("imgMap Click !!!")
-    }
-
     override fun onShowLoading() {
         progressDialog.show()
     }
@@ -151,11 +162,20 @@ class NearByFragment : Fragment(), NearByContact.View {
         progressDialog.hide()
     }
 
-    override fun onResponseSuccess(name: String?, vicinity: String?) {
-        rootView.txtText.text = "$name, $vicinity"
+    override fun onResponseSuccess(nearByItemList: ArrayList<NearByItem>) {
+        nearByAdapter.addAllItem(nearByItemList)
     }
 
     override fun onResponseError(localizedMessage: String) {
-        rootView.txtText.text = "$localizedMessage"
+        longToast(localizedMessage)
+    }
+
+    private val onClickListener = View.OnClickListener {
+        toast("imgMap Click !!!")
+    }
+
+    private val onItemClickListener: RecyclerItemClickListener.OnClickListener = object : RecyclerItemClickListener.OnClickListener {
+        override fun onItemClick(position: Int, view: View) {
+        }
     }
 }
