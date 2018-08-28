@@ -4,21 +4,26 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.os.Bundle
-import android.support.annotation.RequiresPermission
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.github.florent37.runtimepermission.kotlin.askPermission
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import com.nakharin.placesapp.R
+import com.pawegio.kandroid.longToast
 import com.pawegio.kandroid.toast
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.fragment_nearby.view.*
 
-class NearByFragment : Fragment(), ContractView {
+class NearByFragment : Fragment(), NearByContact.View {
 
     companion object {
 
@@ -32,10 +37,7 @@ class NearByFragment : Fragment(), ContractView {
 
     private lateinit var rootView: View
 
-    private val presenter : ContractPresenter by lazy {
-        ContractPresenterImpl(this)
-    }
-
+    private lateinit var presenter: NearByContact.UserActionListener
     private val compositeDisposable = CompositeDisposable()
 
     private lateinit var progressDialog: ProgressDialog
@@ -45,6 +47,8 @@ class NearByFragment : Fragment(), ContractView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         init(savedInstanceState)
+
+        presenter = NearByPresenter(this)
 
         if (savedInstanceState != null)
             onRestoreInstanceState(savedInstanceState)
@@ -56,6 +60,7 @@ class NearByFragment : Fragment(), ContractView {
         initInstances(savedInstanceState)
         return rootView
     }
+
     @SuppressLint("MissingPermission")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -66,38 +71,44 @@ class NearByFragment : Fragment(), ContractView {
     }
 
     @SuppressLint("MissingPermission")
-    @RequiresPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
     private fun checkPermissionLocation() {
-        askPermission(Manifest.permission.ACCESS_FINE_LOCATION) {
-            if (it.isAccepted) {
-                fusedLocationClient.lastLocation.addOnSuccessListener(activity!!) { location ->
-                    // Got last known location. In some rare situations this can be null.
-                    if (location != null) {
-                        val disposable = presenter.getNearbyPlaces("restaurant", location)
-                        compositeDisposable.add(disposable)
+        Dexter.withActivity(activity)
+                .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                .withListener(object : PermissionListener {
+                    override fun onPermissionGranted(response: PermissionGrantedResponse) {
+                        fusedLocationClient.lastLocation.addOnSuccessListener(activity!!) { location ->
+                            // Got last known location. In some rare situations this can be null.
+                            if (location != null) {
+                                val disposable = presenter.getNearbyPlaces("restaurant", location)
+                                compositeDisposable.add(disposable)
+                            }
+                        }.addOnFailureListener {
+                            longToast(it.localizedMessage)
+                        }
                     }
-                }
 
-            } else {
-                if (it.hasForeverDenied()) {
-                    AlertDialog.Builder(context!!)
-                            .setTitle("Need Permissions")
-                            .setMessage("This app needs permission to use this feature. You can grant them in app settings.")
-                            .setPositiveButton("GOTO SETTINGS") { d, _ ->
-                                d.dismiss()
-                                it.goToSettings()
-                            }.setNegativeButton("Cancel") { d, _ ->
-                                d.dismiss()
-                            }.show()
-                } else {
-                    toast("Permission Denied.")
-                }
-            }
-        }
-    }
+                    override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest, token: PermissionToken) {
+                        token.continuePermissionRequest()
+                    }
 
-    override fun onResume() {
-        super.onResume()
+                    override fun onPermissionDenied(response: PermissionDeniedResponse) {
+                        if (response.isPermanentlyDenied) {
+                            AlertDialog.Builder(context!!)
+                                    .setTitle("Need Permissions")
+                                    .setMessage("This app needs permission to use this feature. You can grant them in app settings.")
+                                    .setPositiveButton("GOTO SETTINGS") { d, _ ->
+                                        d.dismiss()
+                                    }.setNegativeButton("Cancel") { d, _ ->
+                                        d.dismiss()
+                                    }.show()
+                        }
+                    }
+
+                })
+                .withErrorListener {
+                    longToast(it.toString())
+                }.onSameThread()
+                .check()
     }
 
     override fun onDestroy() {

@@ -6,7 +6,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 
-class ContractPresenterImpl(val view: ContractView) : ContractPresenter {
+class NearByPresenter constructor(private val view: NearByContact.View) : NearByContact.UserActionListener {
 
     override fun getNearbyPlaces(type: String, location: Location): Disposable {
         view.onShowLoading()
