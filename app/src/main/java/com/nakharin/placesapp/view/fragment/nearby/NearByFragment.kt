@@ -1,12 +1,9 @@
 package com.nakharin.placesapp.view.fragment.nearby
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,12 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionDeniedResponse
-import com.karumi.dexter.listener.PermissionGrantedResponse
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.single.PermissionListener
+import com.google.android.gms.maps.model.LatLng
 import com.nakharin.placesapp.R
 import com.nakharin.placesapp.extension.RecyclerItemClickListener
 import com.nakharin.placesapp.extension.addOnItemClickListener
@@ -74,11 +66,12 @@ class NearByFragment : Fragment(), NearByContact.View {
         return rootView
     }
 
-    @SuppressLint("MissingPermission")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        checkPermissionLocation()
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(rootView.context)
+        presenter.setFusedLocationProviderClient(fusedLocationClient)
+        presenter.checkPermissionLocation(activity!!)
 
         rootView.imgMap.setOnClickListener(onClickListener)
         rootView.recyclerNearBy.addOnItemClickListener(onItemClickListener)
@@ -92,47 +85,6 @@ class NearByFragment : Fragment(), NearByContact.View {
     override fun onPause() {
         super.onPause()
         BusProvider.getInstance().unregister(this)
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun checkPermissionLocation() {
-        Dexter.withActivity(activity)
-                .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                .withListener(object : PermissionListener {
-                    override fun onPermissionGranted(response: PermissionGrantedResponse) {
-                        fusedLocationClient.lastLocation.addOnSuccessListener(activity!!) { location ->
-                            // Got last known location. In some rare situations this can be null.
-                            if (location != null) {
-                                val disposable = presenter.getNearbyPlaces("restaurant", location.latitude, location.longitude)
-                                compositeDisposable.add(disposable)
-                            }
-                        }.addOnFailureListener {
-                            longToast(it.localizedMessage)
-                        }
-                    }
-
-                    override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest, token: PermissionToken) {
-                        token.continuePermissionRequest()
-                    }
-
-                    override fun onPermissionDenied(response: PermissionDeniedResponse) {
-                        if (response.isPermanentlyDenied) {
-                            AlertDialog.Builder(context!!)
-                                    .setTitle("Need Permissions")
-                                    .setMessage("This app needs permission to use this feature. You can grant them in app settings.")
-                                    .setPositiveButton("GOTO SETTINGS") { d, _ ->
-                                        d.dismiss()
-                                    }.setNegativeButton("Cancel") { d, _ ->
-                                        d.dismiss()
-                                    }.show()
-                        }
-                    }
-
-                })
-                .withErrorListener {
-                    longToast(it.toString())
-                }.onSameThread()
-                .check()
     }
 
     override fun onDestroy() {
@@ -151,7 +103,6 @@ class NearByFragment : Fragment(), NearByContact.View {
         // Init 'View' instance(s) with rootView.findViewById here
         // Note: State of variable initialized here could not be saved
         //       in onSavedInstanceState
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(rootView.context)
 
         val linearLayoutManager = LinearLayoutManager(context)
         rootView.recyclerNearBy.layoutManager = linearLayoutManager
@@ -167,6 +118,36 @@ class NearByFragment : Fragment(), NearByContact.View {
 
     private fun onRestoreInstanceState(savedInstanceState: Bundle) {
         // Restore Instance (Fragment level's variables) State here
+    }
+
+    /********************************************************************************************
+     ************************************ Listener *********************************************
+     ********************************************************************************************/
+
+    private val onClickListener = View.OnClickListener {
+        presenter.goToMap()
+    }
+
+    private val onItemClickListener: RecyclerItemClickListener.OnClickListener = object : RecyclerItemClickListener.OnClickListener {
+        override fun onItemClick(position: Int, view: View) {
+        }
+    }
+
+    /********************************************************************************************
+     ************************************ ContactView ********************************************
+     ********************************************************************************************/
+
+    override fun onLocationPermissionGranted(isGranted: Boolean, errorMessage: String) {
+        if (isGranted) {
+            presenter.getLastLocation(activity!!)
+        } else {
+            longToast(errorMessage)
+        }
+    }
+
+    override fun onGotLastLocation(latLng: LatLng) {
+        val disposable = presenter.getNearbyPlaces("restaurant", latLng.latitude, latLng.longitude)
+        compositeDisposable.add(disposable)
     }
 
     override fun onShowLoading() {
@@ -190,14 +171,6 @@ class NearByFragment : Fragment(), NearByContact.View {
         startActivity(i)
     }
 
-    private val onClickListener = View.OnClickListener {
-        presenter.goToMap()
-    }
-
-    private val onItemClickListener: RecyclerItemClickListener.OnClickListener = object : RecyclerItemClickListener.OnClickListener {
-        override fun onItemClick(position: Int, view: View) {
-        }
-    }
 
     /********************************************************************************************
      ************************************ Event Bus *********************************************
