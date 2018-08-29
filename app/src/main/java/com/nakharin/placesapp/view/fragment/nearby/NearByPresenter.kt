@@ -14,7 +14,7 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import com.nakharin.placesapp.network.ConnectionService
 import com.nakharin.placesapp.network.model.NearLocation
-import com.nakharin.placesapp.realm.Place
+import com.nakharin.placesapp.realm.PlaceFavorite
 import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -125,17 +125,17 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
 
             val self = nearByItemList[position]
 
-            val place = Place()
+            val placeFavorite = PlaceFavorite()
 
-            place.id = self.id
-            place.icon = self.icon
-            place.name = self.name
-            place.url = self.url
-            place.lat = self.lat
-            place.lng = self.lng
-            place.isFavorite = self.isFavorite
+            placeFavorite.id = self.id
+            placeFavorite.icon = self.icon
+            placeFavorite.name = self.name
+            placeFavorite.url = self.url
+            placeFavorite.lat = self.lat
+            placeFavorite.lng = self.lng
+            placeFavorite.isFavorite = self.isFavorite
 
-            it.copyToRealmOrUpdate(place)
+            it.copyToRealmOrUpdate(placeFavorite)
         }
     }
 
