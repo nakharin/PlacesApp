@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Message
 import android.support.v4.app.Fragment
+import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.LayoutInflater
@@ -76,6 +77,8 @@ class NearByFragment : Fragment(), NearByContact.View {
 
         rootView.fabMap.setOnClickListener(onClickListener)
         rootView.recyclerNearBy.addOnItemClickListener(onItemClickListener)
+        rootView.swipeRefresh.setOnRefreshListener(onRefreshListener)
+
         nearByAdapter.setOnFavoriteListener(onFavoriteListener)
     }
 
@@ -121,7 +124,7 @@ class NearByFragment : Fragment(), NearByContact.View {
     }
 
     /********************************************************************************************
-     ************************************ Listener *********************************************
+     ************************************ Listener **********************************************
      ********************************************************************************************/
 
     private val onClickListener = View.OnClickListener {
@@ -140,12 +143,17 @@ class NearByFragment : Fragment(), NearByContact.View {
         }
     }
 
+    private val onRefreshListener = SwipeRefreshLayout.OnRefreshListener {
+        presenter.getLastLocation(activity!!)
+    }
+
     /********************************************************************************************
-     ************************************ ContactView ********************************************
+     ************************************ ContactView *******************************************
      ********************************************************************************************/
 
     override fun onLocationPermissionGranted(isGranted: Boolean, errorMessage: String) {
         if (isGranted) {
+            onShowLoading()
             presenter.getLastLocation(activity!!)
         } else {
             longToast(errorMessage)
@@ -164,6 +172,7 @@ class NearByFragment : Fragment(), NearByContact.View {
 
     override fun onHideLoading() {
         rootView.loadingView.visibility = View.GONE
+        rootView.swipeRefresh.isRefreshing = false
     }
 
     override fun onResponseSuccess(nearByItemList: ArrayList<NearByItem>) {

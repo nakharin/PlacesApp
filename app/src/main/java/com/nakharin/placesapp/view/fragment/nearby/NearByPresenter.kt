@@ -100,7 +100,6 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
     }
 
     override fun getNearbyPlaces(type: String, lat: Double, lng: Double): Disposable {
-        view.onShowLoading()
 
         val observable = ConnectionService.getApiService().getNearbyPlaces(type, "$lat,$lng", 1000)
 
