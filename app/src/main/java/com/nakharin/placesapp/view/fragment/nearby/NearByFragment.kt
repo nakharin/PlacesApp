@@ -154,6 +154,7 @@ class NearByFragment : Fragment(), NearByContact.View {
 
     override fun onShowLoading() {
         rootView.loadingView.visibility = View.VISIBLE
+        rootView.fabMap.visibility = View.VISIBLE
     }
 
     override fun onHideLoading() {
