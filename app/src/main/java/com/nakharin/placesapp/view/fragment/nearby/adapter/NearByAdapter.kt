@@ -15,6 +15,8 @@ class NearByAdapter(private var nearByItemList: ArrayList<NearByItem>) : Recycle
 
     private lateinit var mContext: Context
 
+    private var mOnFavoriteListener: OnFavoriteListener? = null
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NearByAdapter.ViewHolder {
         mContext = parent.context
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -36,6 +38,12 @@ class NearByAdapter(private var nearByItemList: ArrayList<NearByItem>) : Recycle
         } else {
             holder.imgFavorite.setImageDrawable(ContextCompat.getDrawable(mContext, R.mipmap.icon_favorite))
         }
+
+        holder.imgFavorite.setOnClickListener {
+            val adapterPosition = holder.adapterPosition
+            val isFavorite = nearByItemList[adapterPosition].isFavorite
+            mOnFavoriteListener?.onFavorite(adapterPosition, isFavorite)
+        }
     }
 
     fun addAllItem(nearByItemList: ArrayList<NearByItem>) {
@@ -43,10 +51,18 @@ class NearByAdapter(private var nearByItemList: ArrayList<NearByItem>) : Recycle
         notifyDataSetChanged()
     }
 
+    fun setOnFavoiteListener(onFavoriteListener: OnFavoriteListener) {
+        mOnFavoriteListener = onFavoriteListener
+    }
+
     class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val imgIcon = v.imgIcon!!
         val txtName = v.txtName!!
         val txtUrlLink = v.txtUrlLink!!
         val imgFavorite = v.imgFavorite!!
+    }
+
+    interface OnFavoriteListener {
+        fun onFavorite(position: Int, isFavorite: Boolean)
     }
 }
