@@ -80,6 +80,7 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
                 .subscribe({ it ->
                     view.onHideLoading()
                     if (it.status == "OK") {
+                        nearByItemList.clear()
                         it.results.forEach {
                             val nearByItem = NearByItem(it.id!!, it.icon!!, "${it.name} ${it.vicinity}", "URL Link", it.geometry?.location?.lat!!, it.geometry?.location?.lng!!, false)
                             nearByItemList.add(nearByItem)
@@ -93,6 +94,9 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
                     view.onHideLoading()
                     view.onResponseError(it.localizedMessage)
                 })
+    }
+
+    override fun addFavoritePlace(position: Int, isFavorite: Boolean) {
     }
 
     override fun goToMap() {

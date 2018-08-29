@@ -21,6 +21,7 @@ import com.nakharin.placesapp.view.fragment.nearby.adapter.NearByAdapter
 import com.nakharin.placesapp.view.fragment.nearby.event.EventSendSelectedLocation
 import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import com.pawegio.kandroid.longToast
+import com.pawegio.kandroid.toast
 import com.squareup.otto.Subscribe
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.fragment_nearby.view.*
@@ -75,6 +76,7 @@ class NearByFragment : Fragment(), NearByContact.View {
 
         rootView.imgMap.setOnClickListener(onClickListener)
         rootView.recyclerNearBy.addOnItemClickListener(onItemClickListener)
+        nearByAdapter.setOnFavoriteListener(onFavoriteListener)
     }
 
     override fun onResume() {
@@ -130,6 +132,13 @@ class NearByFragment : Fragment(), NearByContact.View {
 
     private val onItemClickListener: RecyclerItemClickListener.OnClickListener = object : RecyclerItemClickListener.OnClickListener {
         override fun onItemClick(position: Int, view: View) {
+        }
+    }
+
+    private val onFavoriteListener = object : NearByAdapter.OnFavoriteListener {
+        override fun onFavorite(position: Int, isFavorite: Boolean) {
+            nearByAdapter.updateFavoriteItem(position, isFavorite)
+            presenter.addFavoritePlace(position, isFavorite)
         }
     }
 

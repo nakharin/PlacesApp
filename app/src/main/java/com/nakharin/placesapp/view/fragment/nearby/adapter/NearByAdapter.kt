@@ -11,7 +11,7 @@ import com.nakharin.placesapp.extension.load
 import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import kotlinx.android.synthetic.main.view_adapter_nearby.view.*
 
-class NearByAdapter(private var nearByItemList: ArrayList<NearByItem>) : RecyclerView.Adapter<NearByAdapter.ViewHolder>() {
+class NearByAdapter(private var mNearByItemList: ArrayList<NearByItem>) : RecyclerView.Adapter<NearByAdapter.ViewHolder>() {
 
     private lateinit var mContext: Context
 
@@ -24,16 +24,16 @@ class NearByAdapter(private var nearByItemList: ArrayList<NearByItem>) : Recycle
     }
 
     override fun getItemCount(): Int {
-        return nearByItemList.size
+        return mNearByItemList.size
     }
 
     override fun onBindViewHolder(holder: NearByAdapter.ViewHolder, position: Int) {
 
-        holder.imgIcon.load(nearByItemList[position].icon)
-        holder.txtName.text = nearByItemList[position].name
-        holder.txtUrlLink.text = nearByItemList[position].url
+        holder.imgIcon.load(mNearByItemList[position].icon)
+        holder.txtName.text = mNearByItemList[position].name
+        holder.txtUrlLink.text = mNearByItemList[position].url
 
-        if (nearByItemList[position].isFavorite) {
+        if (mNearByItemList[position].isFavorite) {
             holder.imgFavorite.setImageDrawable(ContextCompat.getDrawable(mContext, R.mipmap.icon_favorite_active))
         } else {
             holder.imgFavorite.setImageDrawable(ContextCompat.getDrawable(mContext, R.mipmap.icon_favorite))
@@ -41,17 +41,22 @@ class NearByAdapter(private var nearByItemList: ArrayList<NearByItem>) : Recycle
 
         holder.imgFavorite.setOnClickListener {
             val adapterPosition = holder.adapterPosition
-            val isFavorite = nearByItemList[adapterPosition].isFavorite
-            mOnFavoriteListener?.onFavorite(adapterPosition, isFavorite)
+            val isFavorite = mNearByItemList[adapterPosition].isFavorite
+            mOnFavoriteListener?.onFavorite(adapterPosition, !isFavorite)
         }
     }
 
     fun addAllItem(nearByItemList: ArrayList<NearByItem>) {
-        this.nearByItemList = nearByItemList
+        mNearByItemList = nearByItemList
         notifyDataSetChanged()
     }
 
-    fun setOnFavoiteListener(onFavoriteListener: OnFavoriteListener) {
+    fun updateFavoriteItem(position: Int, isFavorite: Boolean) {
+        mNearByItemList[position].isFavorite = isFavorite
+        notifyItemChanged(position)
+    }
+
+    fun setOnFavoriteListener(onFavoriteListener: OnFavoriteListener) {
         mOnFavoriteListener = onFavoriteListener
     }
 
