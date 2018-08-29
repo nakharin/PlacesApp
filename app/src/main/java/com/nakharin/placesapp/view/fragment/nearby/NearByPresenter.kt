@@ -13,18 +13,32 @@ import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import com.nakharin.placesapp.network.ConnectionService
+import com.nakharin.placesapp.network.model.NearLocation
+import com.nakharin.placesapp.realm.Place
 import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import io.realm.Realm
 
 class NearByPresenter constructor(private val view: NearByContact.View) : NearByContact.UserActionListener {
 
+    private var mRealm: Realm? = null
     private var nearByItemList: ArrayList<NearByItem> = arrayListOf()
     private var mFusedLocationClient: FusedLocationProviderClient? = null
 
+    override fun setUpRealm() {
+        mRealm = Realm.getDefaultInstance()
+    }
+
+    override fun closeRealm() {
+        mRealm?.close()
+    }
+
     override fun setFusedLocationProviderClient(fusedLocationClient: FusedLocationProviderClient) {
-        mFusedLocationClient= fusedLocationClient
+        mFusedLocationClient = fusedLocationClient
+        // Method from this class
+        setUpRealm()
     }
 
     @SuppressLint("MissingPermission")
@@ -71,24 +85,34 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
         }
     }
 
+    private fun convertModel(it: NearLocation): ArrayList<NearByItem> {
+        return if (it.status == "OK") {
+            nearByItemList.clear()
+            it.results.forEach {
+                val nearByItem = NearByItem(it.id!!, it.icon!!, "${it.name} ${it.vicinity}", "URL Link", it.geometry?.location?.lat!!, it.geometry?.location?.lng!!, false)
+                nearByItemList.add(nearByItem)
+            }
+
+            nearByItemList
+        } else {
+            view.onResponseError(it.status!!)
+            arrayListOf()
+        }
+    }
+
     override fun getNearbyPlaces(type: String, lat: Double, lng: Double): Disposable {
         view.onShowLoading()
 
-        return ConnectionService.getApiService().getNearbyPlaces(type, "$lat,$lng", 1000)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe({ it ->
-                    view.onHideLoading()
-                    if (it.status == "OK") {
-                        nearByItemList.clear()
-                        it.results.forEach {
-                            val nearByItem = NearByItem(it.id!!, it.icon!!, "${it.name} ${it.vicinity}", "URL Link", it.geometry?.location?.lat!!, it.geometry?.location?.lng!!, false)
-                            nearByItemList.add(nearByItem)
-                        }
+        val observable = ConnectionService.getApiService().getNearbyPlaces(type, "$lat,$lng", 1000)
 
-                        view.onResponseSuccess(nearByItemList)
-                    } else {
-                        view.onResponseError(it.status!!)
+        val subscription = observable.observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .map { convertModel(it) }
+
+        return subscription.subscribe({ it ->
+                    view.onHideLoading()
+                    if (it.isEmpty()) {
+                        view.onResponseSuccess(it)
                     }
                 }, {
                     view.onHideLoading()
@@ -97,6 +121,22 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
     }
 
     override fun addFavoritePlace(position: Int, isFavorite: Boolean) {
+        mRealm?.executeTransaction {
+
+            val self = nearByItemList[position]
+
+            val place = Place()
+
+            place.id = self.id
+            place.icon = self.icon
+            place.name = self.name
+            place.url = self.url
+            place.lat = self.lat
+            place.lng = self.lng
+            place.isFavorite = self.isFavorite
+
+            it.copyToRealmOrUpdate(place)
+        }
     }
 
     override fun goToMap() {

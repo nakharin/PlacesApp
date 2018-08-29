@@ -24,6 +24,8 @@ class NearByContact {
         fun getLastLocation(activity: FragmentActivity)
         fun getNearbyPlaces(type: String, lat: Double, lng: Double) : Disposable
         fun addFavoritePlace(position: Int, isFavorite: Boolean)
+        fun setUpRealm()
+        fun closeRealm()
         fun goToMap()
     }
 }

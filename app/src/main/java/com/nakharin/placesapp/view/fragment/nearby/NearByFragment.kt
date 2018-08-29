@@ -22,6 +22,7 @@ import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import com.pawegio.kandroid.longToast
 import com.squareup.otto.Subscribe
 import io.reactivex.disposables.CompositeDisposable
+import io.realm.Realm
 import kotlinx.android.synthetic.main.fragment_nearby.view.*
 
 class NearByFragment : Fragment(), NearByContact.View {
@@ -67,6 +68,7 @@ class NearByFragment : Fragment(), NearByContact.View {
         super.onActivityCreated(savedInstanceState)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(rootView.context)
+        presenter.setUpRealm()
         presenter.setFusedLocationProviderClient(fusedLocationClient)
         presenter.checkPermissionLocation(activity!!)
 
@@ -88,6 +90,7 @@ class NearByFragment : Fragment(), NearByContact.View {
     override fun onDestroy() {
         super.onDestroy()
         compositeDisposable.clear()
+        presenter.closeRealm()
     }
 
     private fun init(savedInstanceState: Bundle?) {
