@@ -15,7 +15,7 @@ import com.karumi.dexter.listener.single.PermissionListener
 import com.nakharin.placesapp.network.ConnectionService
 import com.nakharin.placesapp.network.model.NearLocation
 import com.nakharin.placesapp.realm.PlaceFavorite
-import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
+import com.nakharin.placesapp.model.NearByItem
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -140,10 +140,14 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
             }
         } else {
             mRealm?.let {
-                val r = it.where(PlaceFavorite::class.java).findAllAsync()
-                r.where().equalTo("isFavorite", false)
-                r.deleteAllFromRealm()
-                view.showToast("Canceled")
+                val result = it.where(PlaceFavorite::class.java).findAllAsync()
+                result.where().equalTo("isFavorite", false)
+                val isDeleted = result.deleteAllFromRealm()
+                if (isDeleted) {
+                    view.showToast("Canceled")
+                } else {
+                    view.showToast("Delete Failed")
+                }
             }
         }
     }

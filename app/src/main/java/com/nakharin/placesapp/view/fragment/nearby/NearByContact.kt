@@ -3,7 +3,7 @@ package com.nakharin.placesapp.view.fragment.nearby
 import android.support.v4.app.FragmentActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
-import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
+import com.nakharin.placesapp.model.NearByItem
 import io.reactivex.disposables.Disposable
 
 class NearByContact {

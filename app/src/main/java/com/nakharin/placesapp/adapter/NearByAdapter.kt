@@ -1,4 +1,4 @@
-package com.nakharin.placesapp.view.fragment.nearby.adapter
+package com.nakharin.placesapp.adapter
 
 import android.content.Context
 import android.support.v4.content.ContextCompat
@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.nakharin.placesapp.R
 import com.nakharin.placesapp.extension.load
-import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
+import com.nakharin.placesapp.model.NearByItem
 import kotlinx.android.synthetic.main.view_adapter_nearby.view.*
 
 class NearByAdapter(private var mNearByItemList: ArrayList<NearByItem>) : RecyclerView.Adapter<NearByAdapter.ViewHolder>() {
@@ -49,6 +49,11 @@ class NearByAdapter(private var mNearByItemList: ArrayList<NearByItem>) : Recycl
     fun addAllItem(nearByItemList: ArrayList<NearByItem>) {
         mNearByItemList = nearByItemList
         notifyDataSetChanged()
+    }
+
+    fun removeItem(position: Int) {
+        mNearByItemList.removeAt(position)
+        notifyItemRemoved(position)
     }
 
     fun updateFavoriteItem(position: Int, isFavorite: Boolean) {

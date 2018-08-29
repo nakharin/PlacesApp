@@ -2,7 +2,6 @@ package com.nakharin.placesapp.view.fragment.nearby
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Message
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.LinearLayoutManager
@@ -18,14 +17,13 @@ import com.nakharin.placesapp.extension.RecyclerItemClickListener
 import com.nakharin.placesapp.extension.addOnItemClickListener
 import com.nakharin.placesapp.utility.BusProvider
 import com.nakharin.placesapp.view.activity.map.MapsActivity
-import com.nakharin.placesapp.view.fragment.nearby.adapter.NearByAdapter
+import com.nakharin.placesapp.adapter.NearByAdapter
 import com.nakharin.placesapp.view.fragment.nearby.event.EventSendSelectedLocation
-import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
+import com.nakharin.placesapp.model.NearByItem
 import com.pawegio.kandroid.longToast
 import com.pawegio.kandroid.toast
 import com.squareup.otto.Subscribe
 import io.reactivex.disposables.CompositeDisposable
-import io.realm.Realm
 import kotlinx.android.synthetic.main.fragment_nearby.view.*
 
 class NearByFragment : Fragment(), NearByContact.View {

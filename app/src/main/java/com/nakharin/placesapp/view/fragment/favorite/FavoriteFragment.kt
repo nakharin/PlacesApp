@@ -2,13 +2,18 @@ package com.nakharin.placesapp.view.fragment.favorite
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.widget.SwipeRefreshLayout
+import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
 import com.nakharin.placesapp.R
+import com.nakharin.placesapp.adapter.NearByAdapter
+import com.nakharin.placesapp.model.NearByItem
+import com.pawegio.kandroid.toast
+import kotlinx.android.synthetic.main.fragment_favorite.view.*
 
-class FavoriteFragment : Fragment() {
+class FavoriteFragment : Fragment(), FavoriteContact.View {
 
     companion object {
 
@@ -20,9 +25,17 @@ class FavoriteFragment : Fragment() {
         }
     }
 
+    private lateinit var rootView: View
+
+    private lateinit var presenter: FavoriteContact.UserActionListener
+
+    private lateinit var nearByAdapter: NearByAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         init(savedInstanceState)
+
+        presenter = FavoritePresenter(this)
 
         if (savedInstanceState != null)
             onRestoreInstanceState(savedInstanceState)
@@ -30,19 +43,36 @@ class FavoriteFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val rootView = inflater.inflate(R.layout.fragment_favorite, container, false)
-        initInstances(rootView, savedInstanceState)
+        rootView = inflater.inflate(R.layout.fragment_favorite, container, false)
+        initInstances(savedInstanceState)
         return rootView
     }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        presenter.reloadFromRealm()
+
+        rootView.swipeRefresh.setOnRefreshListener(onRefreshListener)
+
+        nearByAdapter.setOnFavoriteListener(onFavoriteListener)
+    }
+
 
     private fun init(savedInstanceState: Bundle?) {
         // Init Fragment level's variable(s) here
     }
 
-    private fun initInstances(rootView: View, savedInstanceState: Bundle?) {
+    private fun initInstances(savedInstanceState: Bundle?) {
         // Init 'View' instance(s) with rootView.findViewById here
         // Note: State of variable initialized here could not be saved
         //       in onSavedInstanceState
+
+        val linearLayoutManager = LinearLayoutManager(context)
+        rootView.recyclerFavorite.layoutManager = linearLayoutManager
+
+        nearByAdapter = NearByAdapter(arrayListOf())
+        rootView.recyclerFavorite.adapter = nearByAdapter
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -52,5 +82,36 @@ class FavoriteFragment : Fragment() {
 
     private fun onRestoreInstanceState(savedInstanceState: Bundle) {
         // Restore Instance (Fragment level's variables) State here
+    }
+
+    /********************************************************************************************
+     ************************************ Listener **********************************************
+     ********************************************************************************************/
+
+    private val onRefreshListener = SwipeRefreshLayout.OnRefreshListener {
+        presenter.reloadFromRealm()
+    }
+
+    private val onFavoriteListener = object : NearByAdapter.OnFavoriteListener {
+        override fun onFavorite(position: Int, isFavorite: Boolean) {
+            presenter.removeFavorite(position)
+        }
+    }
+
+    /********************************************************************************************
+     ************************************ ContactView *******************************************
+     ********************************************************************************************/
+
+    override fun onResponseFromRealm(nearByItemList: ArrayList<NearByItem>) {
+        rootView.swipeRefresh.isRefreshing = false
+        nearByAdapter.addAllItem(nearByItemList)
+    }
+
+    override fun onRemoveFromRealmSuccessful(position: Int) {
+        nearByAdapter.removeItem(position)
+    }
+
+    override fun showToast(message: String) {
+        toast(message)
     }
 }
