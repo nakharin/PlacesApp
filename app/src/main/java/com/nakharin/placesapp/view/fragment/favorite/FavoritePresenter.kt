@@ -7,34 +7,32 @@ import java.util.ArrayList
 
 class FavoritePresenter(private val view: FavoriteContact.View) : FavoriteContact.UserActionListener {
 
-    private var mRealm: Realm? = null
     private var nearByItemList: ArrayList<NearByItem> = arrayListOf()
 
     override fun reloadFromRealm() {
-        mRealm = Realm.getDefaultInstance()
-        mRealm?.let { realm ->
-            val result = realm.where(PlaceFavorite::class.java).findAllAsync()
-            nearByItemList.clear()
-            result.forEach {
-                val nearByItem = NearByItem(it.id, it.icon, it.name, it.url, it.lat, it.lng, it.isFavorite)
-                nearByItemList.add(nearByItem)
-            }
-
-            view.onResponseFromRealm(nearByItemList)
+        val mRealm = Realm.getDefaultInstance()
+        val result = mRealm.where(PlaceFavorite::class.java).findAllAsync()
+        nearByItemList.clear()
+        result.forEach {
+            val nearByItem = NearByItem(it.id, it.icon, it.name, it.url, it.lat, it.lng, it.isFavorite)
+            nearByItemList.add(nearByItem)
         }
+        mRealm.close()
+        view.onResponseFromRealm(nearByItemList)
     }
 
     override fun removeFavorite(position: Int) {
         val id = nearByItemList[position].id
-        mRealm?.let { realm ->
-            val result = realm.where(PlaceFavorite::class.java).findAllAsync()
-            result.where().equalTo("id", id)
-            val isDeleted = result.deleteAllFromRealm()
-            if (isDeleted) {
-                view.onRemoveFromRealmSuccessful(position)
-            } else {
-                view.showToast("Delete Failed")
-            }
+        val mRealm = Realm.getDefaultInstance()
+        val result = mRealm.where(PlaceFavorite::class.java).findAllAsync()
+        result.where().equalTo("id", id)
+        val isDeleted = result.deleteAllFromRealm()
+        if (isDeleted) {
+            mRealm.close()
+            view.onRemoveFromRealmSuccessful(position)
+        } else {
+            mRealm.close()
+            view.showToast("Delete Failed")
         }
     }
 }
