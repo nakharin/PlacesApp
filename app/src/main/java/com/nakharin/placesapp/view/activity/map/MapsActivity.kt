@@ -1,9 +1,7 @@
 package com.nakharin.placesapp.view.activity.map
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -13,12 +11,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionDeniedResponse
-import com.karumi.dexter.listener.PermissionGrantedResponse
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.single.PermissionListener
 import com.nakharin.placesapp.R
 import com.nakharin.placesapp.utility.BusProvider
 import com.nakharin.placesapp.view.fragment.nearby.event.EventSendSelectedLocation
@@ -37,6 +29,8 @@ class MapsActivity : AppCompatActivity(), MapsContact.View {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
+
+        presenter = MapsPresenter(this)
 
         setUpToolbar()
 
@@ -68,8 +62,22 @@ class MapsActivity : AppCompatActivity(), MapsContact.View {
         }
     }
 
+    @SuppressLint("MissingPermission")
+    override fun onLocationPermissionGranted(isGranted: Boolean, errorMessage: String) {
+        if (isGranted) {
+            mMap.isMyLocationEnabled = true
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+            presenter.setGoogleMap(mMap)
+            presenter.setFusedLocationProviderClient(fusedLocationClient)
+            presenter.getLastLocation()
+        } else {
+            longToast(errorMessage)
+        }
+    }
+
     override fun onMoveToCurrentLocation(currentLatLng: LatLng, zoomLV: Float) {
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, zoomLV))
+        mMap.setOnCameraIdleListener(onCameraIdleListener)
     }
 
     override fun onGotCenterLocation(latLng: LatLng) {
@@ -79,40 +87,8 @@ class MapsActivity : AppCompatActivity(), MapsContact.View {
         finish()
     }
 
-    @SuppressLint("MissingPermission")
-    private fun checkPermissionLocation() {
-        Dexter.withActivity(this)
-                .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                .withListener(object : PermissionListener {
-                    override fun onPermissionGranted(response: PermissionGrantedResponse) {
-                        mMap.isMyLocationEnabled = true
-                        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this@MapsActivity)
-                        presenter = MapsPresenter(this@MapsActivity, mMap, fusedLocationClient)
-                        presenter.getLastLocation()
-                    }
-
-                    override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest, token: PermissionToken) {
-                        token.continuePermissionRequest()
-                    }
-
-                    override fun onPermissionDenied(response: PermissionDeniedResponse) {
-                        if (response.isPermanentlyDenied) {
-                            AlertDialog.Builder(this@MapsActivity)
-                                    .setTitle("Need Permissions")
-                                    .setMessage("This app needs permission to use this feature. You can grant them in app settings.")
-                                    .setPositiveButton("GOTO SETTINGS") { d, _ ->
-                                        d.dismiss()
-                                    }.setNegativeButton("Cancel") { d, _ ->
-                                        d.dismiss()
-                                    }.show()
-                        }
-                    }
-
-                })
-                .withErrorListener {
-                    longToast(it.toString())
-                }.onSameThread()
-                .check()
+    override fun setAddressName(addressName: String) {
+        txtAddressName.text = addressName
     }
 
     @SuppressLint("MissingPermission")
@@ -122,12 +98,14 @@ class MapsActivity : AppCompatActivity(), MapsContact.View {
         mMap.uiSettings!!.isZoomControlsEnabled = true
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
 
-        checkPermissionLocation()
+        presenter.checkPermissionLocation(this)
+    }
+
+    private val onCameraIdleListener = GoogleMap.OnCameraIdleListener {
+        presenter.getAddressFromLatLng(this)
     }
 
     private val onClickListener = View.OnClickListener {
-        if (it == imgSelectLocation) {
-            presenter.getSelectedLocation()
-        }
+        presenter.getSelectedLocation()
     }
 }

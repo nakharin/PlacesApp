@@ -60,9 +60,10 @@
                         android:textSize="20sp" />
 
                     <TextView
+                        android:id="@+id/txtAddressName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:lines="2"
+                        android:freezesText="true"
                         android:text="..."
                         android:layout_gravity="center"
                         android:gravity="center"/>
@@ -99,6 +100,7 @@
                         android:layout_height="match_parent"
                         android:layout_gravity="center"
                         android:gravity="center"
+                        android:freezesText="true"
                         android:text="@string/str_select_location"
                         android:textColor="@color/colorWhite"
                         android:layout_marginBottom="4dp"/>
