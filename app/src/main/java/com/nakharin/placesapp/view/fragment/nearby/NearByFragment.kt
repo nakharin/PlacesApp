@@ -1,6 +1,5 @@
 package com.nakharin.placesapp.view.fragment.nearby
 
-import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -21,7 +20,6 @@ import com.nakharin.placesapp.view.fragment.nearby.adapter.NearByAdapter
 import com.nakharin.placesapp.view.fragment.nearby.event.EventSendSelectedLocation
 import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import com.pawegio.kandroid.longToast
-import com.pawegio.kandroid.toast
 import com.squareup.otto.Subscribe
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.fragment_nearby.view.*
@@ -43,8 +41,6 @@ class NearByFragment : Fragment(), NearByContact.View {
     private lateinit var presenter: NearByContact.UserActionListener
 
     private val compositeDisposable = CompositeDisposable()
-
-    private lateinit var progressDialog: ProgressDialog
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
@@ -74,7 +70,7 @@ class NearByFragment : Fragment(), NearByContact.View {
         presenter.setFusedLocationProviderClient(fusedLocationClient)
         presenter.checkPermissionLocation(activity!!)
 
-        rootView.imgMap.setOnClickListener(onClickListener)
+        rootView.fabMap.setOnClickListener(onClickListener)
         rootView.recyclerNearBy.addOnItemClickListener(onItemClickListener)
         nearByAdapter.setOnFavoriteListener(onFavoriteListener)
     }
@@ -96,9 +92,6 @@ class NearByFragment : Fragment(), NearByContact.View {
 
     private fun init(savedInstanceState: Bundle?) {
         // Init Fragment level's variable(s) here
-        progressDialog = ProgressDialog(context)
-        progressDialog.setTitle("")
-        progressDialog.setMessage("Connecting, Please wait...")
     }
 
     private fun initInstances(savedInstanceState: Bundle?) {
@@ -160,11 +153,11 @@ class NearByFragment : Fragment(), NearByContact.View {
     }
 
     override fun onShowLoading() {
-        progressDialog.show()
+        rootView.loadingView.visibility = View.VISIBLE
     }
 
     override fun onHideLoading() {
-        progressDialog.hide()
+        rootView.loadingView.visibility = View.GONE
     }
 
     override fun onResponseSuccess(nearByItemList: ArrayList<NearByItem>) {
