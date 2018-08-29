@@ -16,6 +16,7 @@ class NearByContact {
         fun onIntentToMap()
         fun onGotLastLocation(latLng: LatLng)
         fun onLocationPermissionGranted( isGranted: Boolean, errorMessage: String)
+        fun showToast(message: String)
     }
 
     interface UserActionListener {

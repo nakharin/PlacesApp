@@ -20,6 +20,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
+import java.util.*
 
 class NearByPresenter constructor(private val view: NearByContact.View) : NearByContact.UserActionListener {
 
@@ -37,8 +38,6 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
 
     override fun setFusedLocationProviderClient(fusedLocationClient: FusedLocationProviderClient) {
         mFusedLocationClient = fusedLocationClient
-        // Method from this class
-        setUpRealm()
     }
 
     @SuppressLint("MissingPermission")
@@ -111,7 +110,7 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
 
         return subscription.subscribe({ it ->
                     view.onHideLoading()
-                    if (it.isEmpty()) {
+                    if (it.isNotEmpty()) {
                         view.onResponseSuccess(it)
                     }
                 }, {
@@ -121,21 +120,32 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
     }
 
     override fun addFavoritePlace(position: Int, isFavorite: Boolean) {
-        mRealm?.executeTransaction {
+        val nearByItem = nearByItemList[position]
+        nearByItem.isFavorite = isFavorite
+        if (nearByItem.isFavorite) {
+            mRealm?.let {
+                it.executeTransaction { realm ->
+                    val placeFavorite = realm.createObject(PlaceFavorite::class.java, UUID.randomUUID().toString())
+                    placeFavorite.id = nearByItem.id
+                    placeFavorite.icon = nearByItem.icon
+                    placeFavorite.name = nearByItem.name
+                    placeFavorite.url = nearByItem.url
+                    placeFavorite.lat = nearByItem.lat
+                    placeFavorite.lng = nearByItem.lng
+                    placeFavorite.isFavorite = nearByItem.isFavorite
 
-            val self = nearByItemList[position]
+                    realm.copyToRealmOrUpdate(placeFavorite)
 
-            val placeFavorite = PlaceFavorite()
-
-            placeFavorite.id = self.id
-            placeFavorite.icon = self.icon
-            placeFavorite.name = self.name
-            placeFavorite.url = self.url
-            placeFavorite.lat = self.lat
-            placeFavorite.lng = self.lng
-            placeFavorite.isFavorite = self.isFavorite
-
-            it.copyToRealmOrUpdate(placeFavorite)
+                    view.showToast("Saved")
+                }
+            }
+        } else {
+            mRealm?.let {
+                val r = it.where(PlaceFavorite::class.java).findAllAsync()
+                r.where().equalTo("isFavorite", false)
+                r.deleteAllFromRealm()
+                view.showToast("Canceled")
+            }
         }
     }
 

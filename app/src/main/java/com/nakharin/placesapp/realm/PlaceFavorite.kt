@@ -4,9 +4,12 @@ import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 import io.realm.annotations.Required
 
-class PlaceFavorite : RealmObject() {
+open class PlaceFavorite : RealmObject() {
 
     @PrimaryKey
+    @Required
+    var uuId: String = ""
+
     @Required
     var id: String = ""
 
@@ -17,10 +20,8 @@ class PlaceFavorite : RealmObject() {
 
     var url: String = ""
 
-    @Required
     var lat: Double = 0.0
 
-    @Required
     var lng: Double = 0.0
 
     var isFavorite: Boolean = false
