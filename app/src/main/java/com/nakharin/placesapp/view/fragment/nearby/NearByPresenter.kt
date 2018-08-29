@@ -1,6 +1,5 @@
 package com.nakharin.placesapp.view.fragment.nearby
 
-import android.location.Location
 import com.nakharin.placesapp.network.ConnectionService
 import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -11,9 +10,10 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
 
     private var nearByItemList: ArrayList<NearByItem> = arrayListOf()
 
-    override fun getNearbyPlaces(type: String, location: Location): Disposable {
+    override fun getNearbyPlaces(type: String, lat: Double, lng: Double): Disposable {
         view.onShowLoading()
-        return ConnectionService.getApiService().getNearbyPlaces(type, "${location.latitude},${location.longitude}", 1000)
+
+        return ConnectionService.getApiService().getNearbyPlaces(type, "$lat,$lng", 1000)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe({ it ->
@@ -25,10 +25,16 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
                         }
 
                         view.onResponseSuccess(nearByItemList)
+                    } else {
+                        view.onResponseError(it.status!!)
                     }
                 }, {
                     view.onHideLoading()
                     view.onResponseError(it.localizedMessage)
                 })
+    }
+
+    override fun goToMap() {
+        view.onIntentToMap()
     }
 }

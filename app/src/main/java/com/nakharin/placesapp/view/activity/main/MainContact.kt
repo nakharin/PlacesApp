@@ -1,6 +1,6 @@
 package com.nakharin.placesapp.view.activity.main
 
-class MainActivityContact {
+class MainContact {
 
     interface View {
         fun setUpToolbar()

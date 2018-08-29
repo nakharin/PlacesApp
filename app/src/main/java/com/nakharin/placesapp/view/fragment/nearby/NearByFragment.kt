@@ -3,10 +3,12 @@ package com.nakharin.placesapp.view.fragment.nearby
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,10 +23,13 @@ import com.karumi.dexter.listener.single.PermissionListener
 import com.nakharin.placesapp.R
 import com.nakharin.placesapp.extension.RecyclerItemClickListener
 import com.nakharin.placesapp.extension.addOnItemClickListener
+import com.nakharin.placesapp.utility.BusProvider
+import com.nakharin.placesapp.view.activity.map.MapsActivity
 import com.nakharin.placesapp.view.fragment.nearby.adapter.NearByAdapter
+import com.nakharin.placesapp.view.fragment.nearby.event.EventSendSelectedLocation
 import com.nakharin.placesapp.view.fragment.nearby.model.NearByItem
 import com.pawegio.kandroid.longToast
-import com.pawegio.kandroid.toast
+import com.squareup.otto.Subscribe
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.fragment_nearby.view.*
 
@@ -79,6 +84,16 @@ class NearByFragment : Fragment(), NearByContact.View {
         rootView.recyclerNearBy.addOnItemClickListener(onItemClickListener)
     }
 
+    override fun onResume() {
+        super.onResume()
+        BusProvider.getInstance().register(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        BusProvider.getInstance().unregister(this)
+    }
+
     @SuppressLint("MissingPermission")
     private fun checkPermissionLocation() {
         Dexter.withActivity(activity)
@@ -88,7 +103,7 @@ class NearByFragment : Fragment(), NearByContact.View {
                         fusedLocationClient.lastLocation.addOnSuccessListener(activity!!) { location ->
                             // Got last known location. In some rare situations this can be null.
                             if (location != null) {
-                                val disposable = presenter.getNearbyPlaces("restaurant", location)
+                                val disposable = presenter.getNearbyPlaces("restaurant", location.latitude, location.longitude)
                                 compositeDisposable.add(disposable)
                             }
                         }.addOnFailureListener {
@@ -170,12 +185,32 @@ class NearByFragment : Fragment(), NearByContact.View {
         longToast(localizedMessage)
     }
 
+    override fun onIntentToMap() {
+        val i = Intent(context, MapsActivity::class.java)
+        startActivity(i)
+    }
+
     private val onClickListener = View.OnClickListener {
-        toast("imgMap Click !!!")
+        presenter.goToMap()
     }
 
     private val onItemClickListener: RecyclerItemClickListener.OnClickListener = object : RecyclerItemClickListener.OnClickListener {
         override fun onItemClick(position: Int, view: View) {
+        }
+    }
+
+    /********************************************************************************************
+     ************************************ Event Bus *********************************************
+     ********************************************************************************************/
+
+    @Subscribe
+    fun onRecivedSelectedLocation(event: EventSendSelectedLocation) {
+        Log.i("NearByFragment","5555555")
+        val latLng = event.latLng
+        latLng?.let {
+            val disposable = presenter.getNearbyPlaces("restaurant", it.latitude, it.longitude)
+            compositeDisposable.add(disposable)
+            longToast("${latLng.latitude}, ${latLng.longitude}")
         }
     }
 }

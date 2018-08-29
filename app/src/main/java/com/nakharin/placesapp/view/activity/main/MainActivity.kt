@@ -7,9 +7,9 @@ import com.nakharin.placesapp.view.fragment.favorite.FavoriteFragment
 import com.nakharin.placesapp.view.fragment.nearby.NearByFragment
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(), MainActivityContact.View {
+class MainActivity : AppCompatActivity(), MainContact.View {
 
-    private lateinit var viewPagerMainActivityAdapter: ViewPagerMainActivityAdapter
+    private lateinit var viewPagerMainAdapter: ViewPagerMainAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,11 +26,11 @@ class MainActivity : AppCompatActivity(), MainActivityContact.View {
     }
 
     override fun setUpViewPager() {
-        viewPagerMainActivityAdapter = ViewPagerMainActivityAdapter(supportFragmentManager)
-        viewPagerMainActivityAdapter.add(NearByFragment.newInstance(), "NEARBY")
-        viewPagerMainActivityAdapter.add(FavoriteFragment.newInstance(), "FAVORITE")
+        viewPagerMainAdapter = ViewPagerMainAdapter(supportFragmentManager)
+        viewPagerMainAdapter.add(NearByFragment.newInstance(), "NEARBY")
+        viewPagerMainAdapter.add(FavoriteFragment.newInstance(), "FAVORITE")
 
-        viewPager.adapter = viewPagerMainActivityAdapter
+        viewPager.adapter = viewPagerMainAdapter
         tabLayout.setupWithViewPager(viewPager)
     }
 }

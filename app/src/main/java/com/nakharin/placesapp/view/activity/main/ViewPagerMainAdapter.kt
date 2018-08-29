@@ -4,7 +4,7 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentPagerAdapter
 
-class ViewPagerMainActivityAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
+class ViewPagerMainAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
     private val tabNames: ArrayList<String> = ArrayList()
     private val fragments: ArrayList<Fragment> = ArrayList()
