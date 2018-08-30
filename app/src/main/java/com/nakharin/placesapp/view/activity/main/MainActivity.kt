@@ -20,6 +20,10 @@ class MainActivity : AppCompatActivity(), MainContact.View {
         setUpViewPager()
     }
 
+    /********************************************************************************************
+     ************************************ ContactView *******************************************
+     ********************************************************************************************/
+
     override fun setUpToolbar() {
         toolbar.title = getString(R.string.app_name)
         setSupportActionBar(toolbar)

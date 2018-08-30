@@ -17,6 +17,7 @@ class NearByContact {
         fun onGotLastLocation(latLng: LatLng)
         fun onLocationPermissionGranted( isGranted: Boolean, errorMessage: String)
         fun showToast(message: String)
+        fun sendReloadFavorite()
     }
 
     interface UserActionListener {

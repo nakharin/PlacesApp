@@ -52,6 +52,32 @@ class MapsActivity : AppCompatActivity(), MapsContact.View {
         BusProvider.getInstance().unregister(this)
     }
 
+    /********************************************************************************************
+     ************************************ Listener **********************************************
+     ********************************************************************************************/
+
+    @SuppressLint("MissingPermission")
+    private val onMapReadyCallback = OnMapReadyCallback {
+        mMap = it
+
+        mMap.uiSettings!!.isZoomControlsEnabled = true
+        mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+
+        presenter.checkPermissionLocation(this)
+    }
+
+    private val onCameraIdleListener = GoogleMap.OnCameraIdleListener {
+        presenter.getAddressFromLatLng(this)
+    }
+
+    private val onClickListener = View.OnClickListener {
+        presenter.getSelectedLocation()
+    }
+
+    /********************************************************************************************
+     ************************************ ContactView *******************************************
+     ********************************************************************************************/
+
     override fun setUpToolbar() {
         toolbar.title = getString(R.string.str_select_location)
         setSupportActionBar(toolbar)
@@ -89,23 +115,5 @@ class MapsActivity : AppCompatActivity(), MapsContact.View {
 
     override fun setAddressName(addressName: String) {
         txtAddressName.text = addressName
-    }
-
-    @SuppressLint("MissingPermission")
-    private val onMapReadyCallback = OnMapReadyCallback {
-        mMap = it
-
-        mMap.uiSettings!!.isZoomControlsEnabled = true
-        mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-
-        presenter.checkPermissionLocation(this)
-    }
-
-    private val onCameraIdleListener = GoogleMap.OnCameraIdleListener {
-        presenter.getAddressFromLatLng(this)
-    }
-
-    private val onClickListener = View.OnClickListener {
-        presenter.getSelectedLocation()
     }
 }

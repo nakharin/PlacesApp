@@ -156,6 +156,8 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
         } else {
             deleteFromRealm(nearByItem.id)
         }
+
+        view.sendReloadFavorite()
     }
 
     override fun goToMap() {

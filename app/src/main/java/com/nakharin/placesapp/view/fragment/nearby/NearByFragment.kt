@@ -20,6 +20,7 @@ import com.nakharin.placesapp.view.activity.map.MapsActivity
 import com.nakharin.placesapp.adapter.NearByAdapter
 import com.nakharin.placesapp.view.fragment.nearby.event.EventSendSelectedLocation
 import com.nakharin.placesapp.model.NearByItem
+import com.nakharin.placesapp.view.fragment.nearby.event.EventSendReloadFavorite
 import com.pawegio.kandroid.longToast
 import com.pawegio.kandroid.toast
 import com.squareup.otto.Subscribe
@@ -84,16 +85,6 @@ class NearByFragment : Fragment(), NearByContact.View {
         BusProvider.getInstance().register(this)
     }
 
-    override fun onPause() {
-        super.onPause()
-        BusProvider.getInstance().unregister(this)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.clear()
-    }
-
     private fun init(savedInstanceState: Bundle?) {
         // Init Fragment level's variable(s) here
     }
@@ -110,6 +101,11 @@ class NearByFragment : Fragment(), NearByContact.View {
         rootView.recyclerNearBy.adapter = nearByAdapter
     }
 
+    override fun onPause() {
+        super.onPause()
+        BusProvider.getInstance().unregister(this)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         // Save Instance (Fragment level's variables) State here
@@ -117,6 +113,11 @@ class NearByFragment : Fragment(), NearByContact.View {
 
     private fun onRestoreInstanceState(savedInstanceState: Bundle) {
         // Restore Instance (Fragment level's variables) State here
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposable.clear()
     }
 
     /********************************************************************************************
@@ -186,6 +187,11 @@ class NearByFragment : Fragment(), NearByContact.View {
 
     override fun showToast(message: String) {
         toast(message)
+    }
+
+    override fun sendReloadFavorite() {
+        val e = EventSendReloadFavorite()
+        BusProvider.getInstance().post(e)
     }
 
     /********************************************************************************************
