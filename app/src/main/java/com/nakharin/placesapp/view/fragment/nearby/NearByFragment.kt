@@ -1,11 +1,11 @@
 package com.nakharin.placesapp.view.fragment.nearby
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,18 +18,20 @@ import com.nakharin.placesapp.extension.addOnItemClickListener
 import com.nakharin.placesapp.utility.BusProvider
 import com.nakharin.placesapp.view.activity.map.MapsActivity
 import com.nakharin.placesapp.adapter.NearByAdapter
-import com.nakharin.placesapp.view.fragment.nearby.event.EventSendSelectedLocation
 import com.nakharin.placesapp.model.NearByItem
 import com.nakharin.placesapp.view.fragment.nearby.event.EventSendReloadFavorite
 import com.pawegio.kandroid.longToast
 import com.pawegio.kandroid.toast
-import com.squareup.otto.Subscribe
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.fragment_nearby.view.*
 
 class NearByFragment : Fragment(), NearByContact.View {
 
     companion object {
+
+        public const val RESULT_LOCATION_LAT = "RESULT_LOCATION_LAT"
+        public const val RESULT_LOCATION_LNG = "RESULT_LOCATION_LNG"
+        private const val RESULT_LOCATION_CODE = 1
 
         fun newInstance(): NearByFragment {
             val fragment = NearByFragment()
@@ -80,11 +82,6 @@ class NearByFragment : Fragment(), NearByContact.View {
         nearByAdapter.setOnFavoriteListener(onFavoriteListener)
     }
 
-    override fun onResume() {
-        super.onResume()
-        BusProvider.getInstance().register(this)
-    }
-
     private fun init(savedInstanceState: Bundle?) {
         // Init Fragment level's variable(s) here
     }
@@ -101,11 +98,6 @@ class NearByFragment : Fragment(), NearByContact.View {
         rootView.recyclerNearBy.adapter = nearByAdapter
     }
 
-    override fun onPause() {
-        super.onPause()
-        BusProvider.getInstance().unregister(this)
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         // Save Instance (Fragment level's variables) State here
@@ -118,6 +110,21 @@ class NearByFragment : Fragment(), NearByContact.View {
     override fun onDestroy() {
         super.onDestroy()
         compositeDisposable.clear()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == RESULT_LOCATION_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                data?.let {
+                    onShowLoading()
+                    val latitude = it.getDoubleExtra(RESULT_LOCATION_LAT, 0.0)
+                    val longitude = it.getDoubleExtra(RESULT_LOCATION_LNG, 0.0)
+                    val disposable = presenter.getNearbyPlaces("restaurant", latitude, longitude)
+                    compositeDisposable.add(disposable)
+                }
+            }
+        }
     }
 
     /********************************************************************************************
@@ -182,7 +189,7 @@ class NearByFragment : Fragment(), NearByContact.View {
 
     override fun onIntentToMap() {
         val i = Intent(context, MapsActivity::class.java)
-        startActivity(i)
+        startActivityForResult(i, RESULT_LOCATION_CODE)
     }
 
     override fun showToast(message: String) {
@@ -192,20 +199,5 @@ class NearByFragment : Fragment(), NearByContact.View {
     override fun sendReloadFavorite() {
         val e = EventSendReloadFavorite()
         BusProvider.getInstance().post(e)
-    }
-
-    /********************************************************************************************
-     ************************************ Event Bus *********************************************
-     ********************************************************************************************/
-
-    @Subscribe
-    fun onRecivedSelectedLocation(event: EventSendSelectedLocation) {
-        Log.i("NearByFragment","5555555")
-        val latLng = event.latLng
-        latLng?.let {
-            val disposable = presenter.getNearbyPlaces("restaurant", it.latitude, it.longitude)
-            compositeDisposable.add(disposable)
-            longToast("${latLng.latitude}, ${latLng.longitude}")
-        }
     }
 }

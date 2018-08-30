@@ -1,6 +1,8 @@
 package com.nakharin.placesapp.view.activity.map
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
@@ -13,7 +15,8 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.nakharin.placesapp.R
 import com.nakharin.placesapp.utility.BusProvider
-import com.nakharin.placesapp.view.fragment.nearby.event.EventSendSelectedLocation
+import com.nakharin.placesapp.view.fragment.nearby.NearByFragment.Companion.RESULT_LOCATION_LAT
+import com.nakharin.placesapp.view.fragment.nearby.NearByFragment.Companion.RESULT_LOCATION_LNG
 import com.pawegio.kandroid.longToast
 import kotlinx.android.synthetic.main.activity_maps.*
 
@@ -107,9 +110,10 @@ class MapsActivity : AppCompatActivity(), MapsContact.View {
     }
 
     override fun onGotCenterLocation(latLng: LatLng) {
-        val e = EventSendSelectedLocation()
-        e.latLng = latLng
-        BusProvider.getInstance().post(e)
+        val i = Intent()
+        i.putExtra(RESULT_LOCATION_LAT, latLng.latitude)
+        i.putExtra(RESULT_LOCATION_LNG, latLng.longitude)
+        setResult(Activity.RESULT_OK,i)
         finish()
     }
 

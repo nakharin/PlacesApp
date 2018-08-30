@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,8 +12,6 @@ import com.nakharin.placesapp.adapter.NearByAdapter
 import com.nakharin.placesapp.model.NearByItem
 import com.nakharin.placesapp.utility.BusProvider
 import com.nakharin.placesapp.view.fragment.nearby.event.EventSendReloadFavorite
-import com.nakharin.placesapp.view.fragment.nearby.event.EventSendSelectedLocation
-import com.pawegio.kandroid.longToast
 import com.pawegio.kandroid.toast
 import com.squareup.otto.Subscribe
 import kotlinx.android.synthetic.main.fragment_favorite.view.*
