@@ -110,8 +110,7 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
     }
 
     private fun saveToRealm(nearByItem: NearByItem) {
-        val realm = Realm.getDefaultInstance()
-        try {
+        Realm.getDefaultInstance().use { realm ->
             realm.executeTransaction {
                 val placeFavorite = it.createObject(PlaceFavorite::class.java, nearByItem.id)
                 placeFavorite.icon = nearByItem.icon
@@ -125,15 +124,11 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
 
                 view.showToast("Saved")
             }
-
-        } finally {
-            realm.close()
         }
     }
 
     private fun deleteFromRealm(id: String) {
-        val realm = Realm.getDefaultInstance()
-        try {
+        Realm.getDefaultInstance().use { realm ->
             realm.executeTransaction {
                 val isDeleted = it.where(PlaceFavorite::class.java).equalTo("id", id).findAll().deleteAllFromRealm()
                 if (isDeleted) {
@@ -142,9 +137,6 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
                     view.showToast("Can't delete")
                 }
             }
-
-        } finally {
-            realm.close()
         }
     }
 

@@ -22,9 +22,8 @@ class FavoritePresenter(private val view: FavoriteContact.View) : FavoriteContac
     }
 
     private fun deleteFromRealm(id: String, position: Int) {
-        val realm = Realm.getDefaultInstance()
-        try {
-            realm.executeTransaction {
+        Realm.getDefaultInstance().use { r ->
+            r.executeTransaction {
                 val isDeleted = it.where(PlaceFavorite::class.java).equalTo("id", id).findAll().deleteAllFromRealm()
                 if (isDeleted) {
                     view.onRemoveFromRealmSuccessful(position)
@@ -32,8 +31,6 @@ class FavoritePresenter(private val view: FavoriteContact.View) : FavoriteContac
                     view.showToast("Delete Failed")
                 }
             }
-        } finally {
-            realm.close()
         }
     }
 
