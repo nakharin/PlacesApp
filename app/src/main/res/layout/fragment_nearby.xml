@@ -29,6 +29,7 @@
         android:layout_height="wrap_content"
         android:src="@mipmap/button_select_location"
         android:visibility="gone"
+        style="@style/MyRippleBackgroundBorderless"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:visibility="visible" />

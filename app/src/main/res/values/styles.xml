@@ -26,14 +26,26 @@
         <item name="android:textColor">@color/colorWhite</item>
     </style>
 
+    <style name="AppTheme.AccentProgressBar">
+        <item name="colorAccent">@color/colorBlue</item> <!-- Whatever color you want-->
+    </style>
+
     <style name="MyRippleBackgroundBorderless">
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
         <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
     </style>
 
-    <style name="AppTheme.AccentProgressBar">
-        <item name="colorAccent">@color/colorBlue</item> <!-- Whatever color you want-->
+    <style name="MyRippleForegroundBorderless">
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:foreground">?android:attr/selectableItemBackgroundBorderless</item>
+    </style>
+
+    <style name="MyRippleBackground">
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
     </style>
 
 </resources>
