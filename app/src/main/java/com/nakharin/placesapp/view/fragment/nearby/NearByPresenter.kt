@@ -12,10 +12,10 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
+import com.nakharin.placesapp.model.NearByItem
 import com.nakharin.placesapp.network.ConnectionService
 import com.nakharin.placesapp.network.model.NearLocation
 import com.nakharin.placesapp.realm.PlaceFavorite
-import com.nakharin.placesapp.model.NearByItem
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -24,17 +24,8 @@ import java.util.*
 
 class NearByPresenter constructor(private val view: NearByContact.View) : NearByContact.UserActionListener {
 
-    private var mRealm: Realm? = null
     private var nearByItemList: ArrayList<NearByItem> = arrayListOf()
     private var mFusedLocationClient: FusedLocationProviderClient? = null
-
-    override fun setUpRealm() {
-        mRealm = Realm.getDefaultInstance()
-    }
-
-    override fun closeRealm() {
-        mRealm?.close()
-    }
 
     override fun setFusedLocationProviderClient(fusedLocationClient: FusedLocationProviderClient) {
         mFusedLocationClient = fusedLocationClient
@@ -108,47 +99,62 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
                 .map { convertModel(it) }
 
         return subscription.subscribe({ it ->
-                    view.onHideLoading()
-                    if (it.isNotEmpty()) {
-                        view.onResponseSuccess(it)
-                    }
-                }, {
-                    view.onHideLoading()
-                    view.onResponseError(it.localizedMessage)
-                })
+            view.onHideLoading()
+            if (it.isNotEmpty()) {
+                view.onResponseSuccess(it)
+            }
+        }, {
+            view.onHideLoading()
+            view.onResponseError(it.localizedMessage)
+        })
+    }
+
+    private fun saveToRealm(nearByItem: NearByItem) {
+        val realm = Realm.getDefaultInstance()
+        try {
+            realm.executeTransaction {
+                val placeFavorite = it.createObject(PlaceFavorite::class.java, nearByItem.id)
+                placeFavorite.icon = nearByItem.icon
+                placeFavorite.name = nearByItem.name
+                placeFavorite.url = nearByItem.url
+                placeFavorite.lat = nearByItem.lat
+                placeFavorite.lng = nearByItem.lng
+                placeFavorite.isFavorite = nearByItem.isFavorite
+
+                it.copyToRealmOrUpdate(placeFavorite)
+
+                view.showToast("Saved")
+            }
+
+        } finally {
+            realm.close()
+        }
+    }
+
+    private fun deleteFromRealm(id: String) {
+        val realm = Realm.getDefaultInstance()
+        try {
+            realm.executeTransaction {
+                val isDeleted = it.where(PlaceFavorite::class.java).equalTo("id", id).findAll().deleteAllFromRealm()
+                if (isDeleted) {
+                    view.showToast("Deleted")
+                } else {
+                    view.showToast("Can't delete")
+                }
+            }
+
+        } finally {
+            realm.close()
+        }
     }
 
     override fun addFavoritePlace(position: Int, isFavorite: Boolean) {
         val nearByItem = nearByItemList[position]
         nearByItem.isFavorite = isFavorite
-        if (nearByItem.isFavorite) {
-            mRealm?.let {
-                it.executeTransaction { realm ->
-                    val placeFavorite = realm.createObject(PlaceFavorite::class.java, UUID.randomUUID().toString())
-                    placeFavorite.id = nearByItem.id
-                    placeFavorite.icon = nearByItem.icon
-                    placeFavorite.name = nearByItem.name
-                    placeFavorite.url = nearByItem.url
-                    placeFavorite.lat = nearByItem.lat
-                    placeFavorite.lng = nearByItem.lng
-                    placeFavorite.isFavorite = nearByItem.isFavorite
-
-                    realm.copyToRealmOrUpdate(placeFavorite)
-
-                    view.showToast("Saved")
-                }
-            }
+        if (isFavorite) {
+            saveToRealm(nearByItem)
         } else {
-            mRealm?.let {
-                val result = it.where(PlaceFavorite::class.java).findAllAsync()
-                result.where().equalTo("isFavorite", false)
-                val isDeleted = result.deleteAllFromRealm()
-                if (isDeleted) {
-                    view.showToast("Canceled")
-                } else {
-                    view.showToast("Delete Failed")
-                }
-            }
+            deleteFromRealm(nearByItem.id)
         }
     }
 

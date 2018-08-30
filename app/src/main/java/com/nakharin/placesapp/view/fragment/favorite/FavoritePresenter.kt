@@ -3,7 +3,7 @@ package com.nakharin.placesapp.view.fragment.favorite
 import com.nakharin.placesapp.model.NearByItem
 import com.nakharin.placesapp.realm.PlaceFavorite
 import io.realm.Realm
-import java.util.ArrayList
+import java.util.*
 
 class FavoritePresenter(private val view: FavoriteContact.View) : FavoriteContact.UserActionListener {
 
@@ -21,18 +21,24 @@ class FavoritePresenter(private val view: FavoriteContact.View) : FavoriteContac
         view.onResponseFromRealm(nearByItemList)
     }
 
+    private fun deleteFromRealm(id: String, position: Int) {
+        val realm = Realm.getDefaultInstance()
+        try {
+            realm.executeTransaction {
+                val isDeleted = it.where(PlaceFavorite::class.java).equalTo("id", id).findAll().deleteAllFromRealm()
+                if (isDeleted) {
+                    view.onRemoveFromRealmSuccessful(position)
+                } else {
+                    view.showToast("Delete Failed")
+                }
+            }
+        } finally {
+            realm.close()
+        }
+    }
+
     override fun removeFavorite(position: Int) {
         val id = nearByItemList[position].id
-        val mRealm = Realm.getDefaultInstance()
-        val result = mRealm.where(PlaceFavorite::class.java).findAllAsync()
-        result.where().equalTo("id", id)
-        val isDeleted = result.deleteAllFromRealm()
-        if (isDeleted) {
-            mRealm.close()
-            view.onRemoveFromRealmSuccessful(position)
-        } else {
-            mRealm.close()
-            view.showToast("Delete Failed")
-        }
+        deleteFromRealm(id, position)
     }
 }

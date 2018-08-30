@@ -69,7 +69,6 @@ class NearByFragment : Fragment(), NearByContact.View {
         super.onActivityCreated(savedInstanceState)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(rootView.context)
-        presenter.setUpRealm()
         presenter.setFusedLocationProviderClient(fusedLocationClient)
         presenter.checkPermissionLocation(activity!!)
 
@@ -93,7 +92,6 @@ class NearByFragment : Fragment(), NearByContact.View {
     override fun onDestroy() {
         super.onDestroy()
         compositeDisposable.clear()
-        presenter.closeRealm()
     }
 
     private fun init(savedInstanceState: Bundle?) {
