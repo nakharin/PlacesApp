@@ -30,4 +30,17 @@ open class PlaceFavorite : RealmObject() {
 
     @SerializedName("isFavorite")
     var isFavorite: Boolean = false
+
+    class Fields {
+
+        companion object {
+            var ID = "id"
+            var ICON = "icon"
+            var NAME = "name"
+            var URL = "url"
+            var LAT = "lat"
+            var LNG = "lng"
+            var IS_FOVORITE = "isFavorite"
+        }
+    }
 }

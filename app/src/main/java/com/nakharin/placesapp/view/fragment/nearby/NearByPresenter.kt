@@ -130,7 +130,7 @@ class NearByPresenter constructor(private val view: NearByContact.View) : NearBy
     private fun deleteFromRealm(id: String) {
         Realm.getDefaultInstance().use { realm ->
             realm.executeTransaction {
-                val isDeleted = it.where(PlaceFavorite::class.java).equalTo("id", id).findAll().deleteAllFromRealm()
+                val isDeleted = it.where(PlaceFavorite::class.java).equalTo(PlaceFavorite.Fields.ID, id).findAll().deleteAllFromRealm()
                 if (isDeleted) {
                     view.showToast("Deleted")
                 } else {

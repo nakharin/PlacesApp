@@ -24,7 +24,7 @@ class FavoritePresenter(private val view: FavoriteContact.View) : FavoriteContac
     private fun deleteFromRealm(id: String, position: Int) {
         Realm.getDefaultInstance().use { r ->
             r.executeTransaction {
-                val isDeleted = it.where(PlaceFavorite::class.java).equalTo("id", id).findAll().deleteAllFromRealm()
+                val isDeleted = it.where(PlaceFavorite::class.java).equalTo(PlaceFavorite.Fields.ID, id).findAll().deleteAllFromRealm()
                 if (isDeleted) {
                     view.onRemoveFromRealmSuccessful(position)
                 } else {
